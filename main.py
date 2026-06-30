@@ -122,4 +122,5 @@ def main():
 
     except Exception as global_err:
         # 크롤링 자체의 치명적 오류 (네트워크 단절 등)
-        logger.critical(f"시스템 오류로 메인 루|
+        logger.critical(f"시스템 오류로 메인 루프가 중단되었습니다: {global_err}")
+
