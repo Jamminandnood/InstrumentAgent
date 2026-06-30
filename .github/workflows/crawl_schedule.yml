@@ -1,0 +1,45 @@
+name: Instrument AI Agent Crawler
+
+on:
+  schedule:
+    - cron: '0 */6 * * *' # 매 6시간마다 자동 실행 (UTC 기준)
+  workflow_dispatch: # 수동으로 바로 실행해볼 수 있는 버튼 활성화
+
+jobs:
+  crawl_and_analyze:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write # 자동 실행 결과(state.json 갱신)를 깃허브에 다시 업로드하기 위함
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Set up Python
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.10'
+
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Run AI Agent
+      env: # 아까 Secrets 금고에 등록한 열쇠들을 프로그램에 전달해 줍니다.
+        GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+        GCP_SERVICE_ACCOUNT_B64: ${{ secrets.GCP_SERVICE_ACCOUNT_B64 }}
+        GCP_SHEETS_ID: ${{ secrets.GCP_SHEETS_ID }}
+        EMAIL_SENDER: ${{ secrets.EMAIL_SENDER }}
+        EMAIL_PASSWORD: ${{ secrets.EMAIL_PASSWORD }}
+        EMAIL_RECEIVER: ${{ secrets.EMAIL_RECEIVER }}
+      run: |
+        python main.py
+
+    - name: Commit and Push state changes
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add data/state.json
+        git diff --quiet && git diff --staged --quiet || git commit -m "Update state with new items" -a
+        git push
