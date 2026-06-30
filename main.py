@@ -2,7 +2,8 @@ import sys
 import traceback
 import os # 이걸 맨 위로 올렸습니다!
 from datetime import datetime
-from core import storage, config, logger
+from core import storage, config
+from core.logger import logger
 from crawlers.api_crawler import APICrawler
 from analyzers.rule_generator import RuleGenerator
 from analyzers.analyzer import RuleBasedAnalyzer
