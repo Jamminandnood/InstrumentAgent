@@ -22,11 +22,11 @@ def initial_setup():
     print("설정이 저장되었습니다. 프로그램을 다시 실행하면 자동으로 크롤링이 시작됩니다.")
 
 def main():
-    # 1. 상태 확인 및 초기 설정
+        # 1. 상태 확인 및 초기 설정
     user_input = storage.get_user_input()
     if not user_input:
-        initial_setup()
-        user_input = storage.get_user_input()
+        user_input = "펜더 텔레캐스터 넥" # 깃허브 자동실행용 기본값 설정
+
 
     # 사용자 입력이 비어있다면 (깃허브 액션 등 자동 환경에서 예외 발생 방지)
     if not user_input:
