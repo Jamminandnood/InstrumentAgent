@@ -1,8 +1,9 @@
 import sys
 import traceback
+import os # 이걸 맨 위로 올렸습니다!
 from datetime import datetime
 from core import storage, config, logger
-from crawlers.api_crawler import APICrawler  # API 크롤러 사용!
+from crawlers.api_crawler import APICrawler
 from analyzers.rule_generator import RuleGenerator
 from analyzers.analyzer import RuleBasedAnalyzer
 from analyzers.ai_analyzer import AIAnalyzer
@@ -38,14 +39,17 @@ def main():
         rules = generator.generate_rules()
 
     # 2. 크롤링 (API 크롤러 사용)
-    # TODO: 나중에 실제 중고 사이트 API 주소를 분석해서 아래 가상 주소("https://api...")를 바꾸세요!
+    # TODO: 나중에 실제 중고 사이트 API 주소를 분석해서 아래 가상 주소를 바꾸세요!
     crawler = APICrawler("https://api.example-site.com/v1/search?q=telecaster")
     
     sheets_mgr = None
     email_notifier = EmailNotifier()
-    new_seen_ids = [] # 이번 사이클에서 성공적으로 처리된 아이템 ID 모음
+    new_seen_ids = []
     recommend_count = 0
     
+    # data 폴더가 없으면 만들기 (에러 방지)
+    os.makedirs("data", exist_ok=True)
+
     try:
         items = crawler.crawl()
 
@@ -114,19 +118,19 @@ def main():
                 new_seen_ids.append(item_id)
 
             except Exception as item_err:
-                # 단일 아이템 파싱 오류 시 전체 프로그램이 멈추지 않도록 다음 아이템으로 넘어감
                 logger.error(f"아이템 처리 중 오류 발생 (ID: {item.get('id', 'Unknown')}): {item_err}")
                 continue
 
         logger.info(f"실행 완료 - 신규 추천: {recommend_count}건")
 
     except Exception as global_err:
-        # 크롤링 자체의 치명적 오류 (네트워크 단절 등)
         logger.critical(f"시스템 오류로 메인 루프가 중단되었습니다: {global_err}")
-            finally:
+    
+    finally:
         # 3. 안전하게 상태 업데이트 (중복 알림 방지 핵심 로직)
         if new_seen_ids:
             logger.info(f"확인된 {len(new_seen_ids)}개의 신규 아이템을 상태 파일에 안전하게 기록합니다.")
             storage.bulk_add_seen(new_seen_ids)
 
-
+if __name__ == "__main__":
+    main()
