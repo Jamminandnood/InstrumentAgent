@@ -123,4 +123,10 @@ def main():
     except Exception as global_err:
         # 크롤링 자체의 치명적 오류 (네트워크 단절 등)
         logger.critical(f"시스템 오류로 메인 루프가 중단되었습니다: {global_err}")
+            finally:
+        # 3. 안전하게 상태 업데이트 (중복 알림 방지 핵심 로직)
+        if new_seen_ids:
+            logger.info(f"확인된 {len(new_seen_ids)}개의 신규 아이템을 상태 파일에 안전하게 기록합니다.")
+            storage.bulk_add_seen(new_seen_ids)
+
 
